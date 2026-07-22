@@ -1,23 +1,22 @@
 import { palette } from "./palette";
-import type { ColorScheme, ThemeSchema } from "./types";
+import type { colorScheme, themeSchema } from "./types";
 
-const light: ThemeSchema = {
-  colorScheme: "light",
+const light: themeSchema = {
+  scheme: "light",
   colors: {
-    appBackground: palette.white,
-    appText: palette.black,
+    background: palette.white,
+    text: palette.black,
+    borderColor: palette.red,
   },
 };
 
-const dark: ThemeSchema = {
-  colorScheme: "dark",
+const dark: themeSchema = {
+  scheme: "dark",
   colors: {
-    appBackground: palette.black,
-    appText: palette.white,
+    background: palette.black,
+    text: palette.white,
+    borderColor: palette.white,
   },
 };
 
-export const theme: Record<ColorScheme, ThemeSchema> = {
-  light,
-  dark,
-};
+export const themes: Record<colorScheme, themeSchema> = { light, dark };

@@ -1,46 +1,36 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useEffect, useMemo, useReducer } from "react";
-import { useColorScheme as useSystemColorScheme } from "react-native";
+import { useColorScheme } from "react-native";
 
-import { theme } from "./colors";
-import { initialThemeState, reducer } from "./themeReducer";
-import type { ColorScheme, Mode, ThemeSchema } from "./types";
+import { themes } from "./colors";
+import { initialState, reducer } from "./themeReducer";
+import type { colorScheme, themeMode } from "./types";
 
-const THEME_STORAGE = "app:theme";
+const STORAGE_KEY = "app:storage";
 
-interface ThemeContextValueType {
-  mode: Mode;
-  colorScheme: ColorScheme;
-  colors: ThemeSchema["colors"];
-  setTheme: (mode: Mode) => void;
+interface ThemeContextValue {
+  mode: themeMode;
+  resolvedScheme: colorScheme;
+  colors: (typeof themes)[colorScheme]["colors"];
+  setTheme: (mode: themeMode) => void;
   toggleTheme: () => void;
-  setSystem: () => void;
 }
 
-export const ThemeContext = createContext<ThemeContextValueType | undefined>(
-  undefined,
-);
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-}
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const deviceScheme = useColorScheme();
 
-export default function ThemeProvider({ children }: ThemeProviderProps) {
-  const [state, dispatch] = useReducer(reducer, initialThemeState);
-
-  const systemScheme = useSystemColorScheme(); // 'light' | 'dark' | null, auto-updates
-
-  const colorScheme = state.mode === "system" ? systemScheme === "light" ? "dark" : state.mode
-
-
+  // Load saved preference once, on mount
   useEffect(() => {
     let isMounted = true;
 
     async function loadSavedTheme() {
       try {
-        const stored = await AsyncStorage.getItem(THEME_STORAGE);
-        if (isMounted && stored) {
-          dispatch({ type: "SET_THEME", payload: stored as Mode });
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        if (isMounted && saved) {
+          dispatch({ type: "HYDRATE", payload: saved as themeMode });
         }
       } catch {
         // ignore read errors, fall back to default "system"
@@ -54,10 +44,11 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     };
   }, []);
 
+  // Persist whenever mode changes
   useEffect(() => {
     async function saveTheme() {
       try {
-        await AsyncStorage.setItem(THEME_STORAGE, state.mode);
+        await AsyncStorage.setItem(STORAGE_KEY, state.mode);
       } catch {
         // ignore write errors
       }
@@ -66,19 +57,29 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     saveTheme();
   }, [state.mode]);
 
-  const value = useMemo<ThemeContextValueType>(() => {
-    return {
+  const resolvedScheme: colorScheme =
+    state.mode === "system"
+      ? deviceScheme === "dark"
+        ? "dark"
+        : "light"
+      : state.mode;
+
+  const colors = themes[resolvedScheme].colors;
+
+  const value = useMemo<ThemeContextValue>(
+    () => ({
       mode: state.mode,
-      colorScheme,
-      colors: theme[colorScheme].colors,
-      setTheme: (mode: Mode) => dispatch({ type: "SET_THEME", payload: mode }),
-      toggleTheme: () =>
-        dispatch({ type: "TOGGLE_THEME", payload: colorScheme }),
-      setSystem: () => dispatch({ type: "SET_SYSTEM" }),
-    };
-  }, [state.mode, colorScheme]);
+      resolvedScheme,
+      colors,
+      setTheme: (mode) => dispatch({ type: "SET_THEME", payload: mode }),
+      toggleTheme: () => dispatch({ type: "TOGGLE", payload: resolvedScheme }),
+    }),
+    [state.mode, resolvedScheme, colors],
+  );
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
+
+export { ThemeContext, ThemeProvider };

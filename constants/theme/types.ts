@@ -1,21 +1,20 @@
-type ColorScheme = "light" | "dark";
-type Mode = ColorScheme | "system";
+export type colorScheme = "light" | "dark";
+export type themeMode = colorScheme | "system";
 
-type ThemeAction =
-  | { type: "SET_THEME"; payload: Mode }
-  | { type: "TOGGLE_THEME"; payload: ColorScheme } // payload = currently resolved scheme
-  | { type: "SET_SYSTEM" };
+export type themeAction =
+  | { type: "SET_THEME"; payload: themeMode }
+  | { type: "TOGGLE"; payload: colorScheme }
+  | { type: "HYDRATE"; payload: themeMode };
 
-interface ThemeState {
-  mode: Mode; // user's stored preference — can be "system"
+export interface ThemeState {
+  mode: themeMode;
 }
 
-interface ThemeSchema {
-  colorScheme: ColorScheme; // resolved value actually rendered
+export interface themeSchema {
+  scheme: colorScheme;
   colors: {
-    appBackground: string;
-    appText: string;
+    background: string;
+    text: string;
+    borderColor: string;
   };
 }
-
-export type { ColorScheme, Mode, ThemeAction, ThemeSchema, ThemeState };

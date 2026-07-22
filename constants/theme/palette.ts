@@ -1,5 +1,5 @@
 export const palette = {
-  black: "000000",
-  white: "FFFFFF",
-  brand: "3A3AFC",
+  white: "#ffffff",
+  black: "#000000", // fixed — was "#ff090900" (8-digit hex = alpha 00 = fully transparent, invisible)
+  red: "#e3376a",
 } as const;
