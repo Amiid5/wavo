@@ -1,16 +1,14 @@
-import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { SafeAreaView, Text, View } from "react-native";
 
+import { Link } from "expo-router";
 import { useTheme } from "../hooks/use-theme";
 
 export default function ThemeTestScreen() {
-  const { colors, resolvedScheme } = useTheme();
+  const { colors, setTheme, toggleTheme } = useTheme();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
-
       <View
         style={{
           flex: 1,
@@ -18,7 +16,11 @@ export default function ThemeTestScreen() {
           justifyContent: "center",
           gap: 16,
         }}>
-        <Text style={{ color: colors.text }}>hello</Text>
+        <Link href={"/onbording"}>
+          <Text style={{ color: colors.text }}>
+            hello navigate to onbording screen
+          </Text>
+        </Link>
       </View>
     </SafeAreaView>
   );
